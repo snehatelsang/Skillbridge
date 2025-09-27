@@ -1,0 +1,52 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  password    String
+  role        Role
+
+  // Tutor-specific fields (nullable for students)
+  subject     String?
+  rate        Int?
+  location    String?
+  description String?
+
+  studentBookings Booking[] @relation("StudentBookings")
+  tutorBookings   Booking[] @relation("TutorBookings")
+  messagesSent    Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  student   User     @relation("StudentBookings", fields: [studentId], references: [id])
+  studentId Int
+  tutor     User     @relation("TutorBookings", fields: [tutorId], references: [id])
+  tutorId   Int
+  date      DateTime
+  mode      String
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  sender     User     @relation("MessagesSent", fields: [senderId], references: [id])
+  senderId   Int
+  receiver   User     @relation("MessagesReceived", fields: [receiverId], references: [id])
+  receiverId Int
+  content    String
+  timestamp  DateTime @default(now())
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+}
